@@ -9,11 +9,11 @@ public class Mutation {
 
 
     public void mutate(int[] chromosome, double mutationRate) {
-        inversionMutation(chromosome, mutationRate);
+        bitFlipMutation(chromosome, mutationRate);
     }
 
     
-    //BIT-FLIP MUTATION (Standar untuk Biner)
+    //BIT-FLIP MUTATION 
     public void bitFlipMutation(int[] chromosome, double mutationRate) {
         for (int i = 0; i < chromosome.length; i++) {
             if (random.nextDouble() <= mutationRate) { //Setiap gen memiliki peluang untuk dibalik
@@ -23,7 +23,7 @@ public class Mutation {
         }
     }
 
-    //SWAP MUTATION (Standar untuk Biner)
+    //SWAP MUTATION
     public void swapMutation(int[] chromosome, double mutationRate) {
         if (random.nextDouble() <= mutationRate) {
             int idx1 = random.nextInt(chromosome.length);
