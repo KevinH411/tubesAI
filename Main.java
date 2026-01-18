@@ -1,23 +1,14 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * Driver untuk menjalankan GA pada Mosaic Puzzle.
- * Cocok dengan API yang ada di projectmu (BoardState, PopulationInitializer, FitnessFunction,
- * TournamentSelection, RankSelection, Crossover, Mutation).
- *
- * Usage:
- *   javac *.java
- *   java Main <puzzle_file> [populationSize] [maxGenerations] [tournamentSize] [crossoverRate] [mutationRate] [seed]
- *
- * Example:
- *   java Main board/input5x5.txt 50 500 3 0.8 0.05 42
- */
 public class Main {
+
+    private static final String RESULT_FILE = "eksperimen/result.txt";
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.out.println("Usage: java Main <puzzle_file> [populationSize] [maxGenerations] [tournamentSize] [crossoverRate] [mutationRate] [seed]");
+            System.out.println(
+                    "Usage: java Main <puzzle_file> [populationSize] [maxGenerations] [tournamentSize] [crossoverRate] [mutationRate] [seed]");
             return;
         }
 
@@ -29,33 +20,33 @@ public class Main {
         double mutationRate = (args.length >= 6) ? Double.parseDouble(args[5]) : 0.05;
         long seed = (args.length >= 7) ? Long.parseLong(args[6]) : System.currentTimeMillis();
 
-        System.out.printf("Puzzle: %s | pop=%d | gens=%d | tour=%d | cx=%.2f | mut=%.3f | seed=%d%n",
-                puzzleFile, populationSize, maxGenerations, tournamentSize, crossoverRate, mutationRate, seed);
+        System.out.printf(
+                "Puzzle: %s | pop=%d | gens=%d | tour=%d | cx=%.2f | mut=%.3f | seed=%d%n",
+                puzzleFile, populationSize, maxGenerations,
+                tournamentSize, crossoverRate, mutationRate, seed);
 
         try {
             Random rng = new Random(seed);
 
-            // 1) Load board
+            // Load board
             BoardState board = new BoardState();
             board.load(puzzleFile);
-            board.findGuaranteedCells(); // mark fixed whites/blacks and collect variables
+            board.findGuaranteedCells();
 
-            // 2) Initialize GA components (match your constructors)
+            // Create GA components
             PopulationInitializer initializer = new PopulationInitializer(board, rng);
-            List<int[]> population = initializer.generatePopulation(populationSize);
+            List<int[]> population = initializer.generatePopulation(populationSize); // Generate gen 0 population
 
             FitnessFunction fitness = new FitnessFunction(board);
             TournamentSelection tournament = new TournamentSelection(fitness, rng);
-            RankSelection rankSelection = new RankSelection(fitness, rng); // available if you want to switch
             Crossover crossover = new Crossover(rng);
             Mutation mutation = new Mutation(rng);
 
-            // GA loop variables
             int generation = 0;
             double bestFitness = Double.NEGATIVE_INFINITY;
             int[] bestChromosome = null;
 
-            // Evaluate initial population's best
+            // Gen 0 evaluation
             for (int[] chrom : population) {
                 double f = fitness.evaluate(chrom);
                 if (f > bestFitness) {
@@ -64,36 +55,32 @@ public class Main {
                 }
             }
 
-            // GA main loop
+            // GA loop
             while (generation < maxGenerations) {
                 generation++;
 
-                // Check if bestChromosome is a valid solution
                 if (bestChromosome != null && isSolution(board, bestChromosome)) {
                     System.out.println("✔ Found exact solution at generation " + generation);
                     printSolution(board, bestChromosome);
+                    writeResult(generation);
                     return;
                 }
 
-                // Build next generation
                 List<int[]> nextGen = new ArrayList<>(populationSize);
+
                 while (nextGen.size() < populationSize) {
-                    // Select parents (tournament)
                     int[] parent1 = tournament.selectParent(population, tournamentSize);
                     int[] parent2 = tournament.selectParent(population, tournamentSize);
 
                     int[] child1 = parent1.clone();
                     int[] child2 = parent2.clone();
 
-                    // Crossover
                     if (rng.nextDouble() < crossoverRate) {
-                        List<int[]> offspring = crossover.singlePointCrossover(parent1, parent2);
-                        // make sure clones are used
+                        List<int[]> offspring = crossover.twoPointCrossover(parent1, parent2);
                         child1 = offspring.get(0).clone();
                         child2 = offspring.get(1).clone();
                     }
 
-                    // Mutation
                     mutation.mutate(child1, mutationRate);
                     mutation.mutate(child2, mutationRate);
 
@@ -103,10 +90,8 @@ public class Main {
                     }
                 }
 
-                // Replace population
                 population = nextGen;
 
-                // Re-evaluate to update bestChromosome
                 for (int[] chrom : population) {
                     double f = fitness.evaluate(chrom);
                     if (f > bestFitness) {
@@ -115,25 +100,30 @@ public class Main {
                     }
                 }
 
-                // Logging every 10 generations
                 if (generation % 10 == 0 || generation == 1) {
                     System.out.printf("Gen %d | bestFitness=%.3f%n", generation, bestFitness);
                 }
             }
 
-            // End GA: print best found
+            // No solution
             System.out.println("✖ Reached max generations, no exact solution found.");
-            System.out.printf("Best fitness: %.3f (generation %d)%n", bestFitness, generation);
-            if (bestChromosome != null) {
-                printSolution(board, bestChromosome);
-            }
+            writeResult(-1);
 
         } catch (Exception e) {
             e.printStackTrace();
+            writeResult(-1);
         }
     }
 
-    // Check if a decoded board satisfies ALL constraints exactly
+    // Eksperimntasi, -1 if failed, x if found
+    private static void writeResult(int value) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(RESULT_FILE, true))) {
+            out.println(value);
+        } catch (IOException e) {
+            System.err.println("Failed to write result file");
+        }
+    }
+
     private static boolean isSolution(BoardState board, int[] chromosome) {
         int[][] decoded = board.decodeChromosome(chromosome);
 
@@ -148,30 +138,40 @@ public class Main {
                     int nr = r + dr;
                     int nc = c + dc;
                     if (nr >= 0 && nr < board.size && nc >= 0 && nc < board.size) {
-                        if (decoded[nr][nc] == 1) blackCount++;
+                        if (decoded[nr][nc] == 1)
+                            blackCount++;
                     }
                 }
             }
-            if (blackCount != required) return false;
+            if (blackCount != required)
+                return false;
         }
         return true;
     }
 
-    // Nicely print final board: show original numbers where present, else X for black, . for white
     private static void printSolution(BoardState board, int[] chromosome) {
         int[][] decoded = board.decodeChromosome(chromosome);
 
-        System.out.println("\nFinal board (numbers = constraints):");
+        System.out.println("\nFinal board:");
         for (int r = 0; r < board.size; r++) {
             StringBuilder sb = new StringBuilder();
             for (int c = 0; c < board.size; c++) {
-                if (board.grid[r][c] >= 0) {
-                    sb.append(board.grid[r][c]); // show numeric constraint
-                } else {
-                    sb.append(decoded[r][c] == 1 ? 'X' : '.');
-                }
+                boolean isBlack = decoded[r][c] == 1;
+                boolean hasNumber = board.grid[r][c] >= 0;
+
+                if (isBlack && hasNumber)
+                    sb.append(board.grid[r][c]).append('B');
+                else if (isBlack)
+                    sb.append('X');
+                else if (hasNumber)
+                    sb.append(board.grid[r][c]);
+                else
+                    sb.append('.');
+
+                if (c < board.size - 1)
+                    sb.append(' ');
             }
-            System.out.println(sb.toString());
+            System.out.println(sb);
         }
     }
 }

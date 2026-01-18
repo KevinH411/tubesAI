@@ -3,7 +3,7 @@ public class FitnessFunction {
     static final int EXACT_BONUS = 100; // bonus jika tile hitam sama dengan constraint
     static final int OVERFILL_PENALTY = 50; // penalty jika tile hitam melebihi constraint
     static final int UNDERFILL_PENALTY = 5; // penalty jika tile hitam kurang dari constraint
-    static final double HEURISTIC_WEIGHT = 0.5; // seberapa penting heuristic
+    static final double HEURISTIC_WEIGHT = 0.05; // seberapa penting heuristic
 
     BoardState boardState;
     double[][] blackProb; // kemungkinan setiap cell/index akan berwarna hitam
