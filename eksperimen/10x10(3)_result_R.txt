@@ -1,4 +1,5 @@
-cmd = for /L %i in (1,1,100) do java Main board/input10x10(3).txt 300 500 5 0.8 0.04
+cmd = java Main board/input10x10(3).txt 300 1500 5 0.8 0.04
+tournament selection
 -1
 -1
 -1

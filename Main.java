@@ -55,8 +55,11 @@ public class Main {
                 }
             }
 
+            long genTimeSum = 0; // total time for last 10 generations (ns)
+            int genCount = 0;
             // GA loop
             while (generation < maxGenerations) {
+                long genStartTime = System.nanoTime();
                 generation++;
 
                 if (bestChromosome != null && isSolution(board, bestChromosome)) {
@@ -100,7 +103,22 @@ public class Main {
                     }
                 }
 
-                if (generation % 10 == 0 || generation == 1) {
+                long genEndTime = System.nanoTime();
+                long genDuration = genEndTime - genStartTime;
+
+                genTimeSum += genDuration;
+                genCount++;
+
+                if (generation % 10 == 0) {
+                    double avgMs = (genTimeSum / 1_000_000.0) / genCount;
+                    System.out.printf(
+                            "Gen %d | bestFitness=%.3f | avgTime=%.3f ms/gen%n",
+                            generation, bestFitness, avgMs);
+
+                    // reset for next 10 generations
+                    genTimeSum = 0;
+                    genCount = 0;
+                } else if (generation == 1) {
                     System.out.printf("Gen %d | bestFitness=%.3f%n", generation, bestFitness);
                 }
             }
