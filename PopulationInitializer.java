@@ -18,7 +18,7 @@ public class PopulationInitializer {
        membuat satu individu generator secara acak
        individu direpresentasikan sebagai array biner (0 = putih, 1 = hitam) 
     */
-    public int[] generateIndividual() {
+    private int[] generateIndividual() {
         int varCount = board.getVariableCount();
         int[] chromosome = new int[varCount];
         for (int i=0; i<chromosome.length; i++) {
