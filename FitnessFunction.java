@@ -1,12 +1,12 @@
 public class FitnessFunction {
     // Hyper-parameter untuk fitness function
-    static final int EXACT_BONUS = 100; // bonus jika tile hitam sama dengan constraint
-    static final int OVERFILL_PENALTY = 50; // penalty jika tile hitam melebihi constraint
-    static final int UNDERFILL_PENALTY = 5; // penalty jika tile hitam kurang dari constraint
-    static final double HEURISTIC_WEIGHT = 0.05; // seberapa penting heuristic
+    private static final int EXACT_BONUS = 100; // bonus jika tile hitam sama dengan constraint
+    private static final int OVERFILL_PENALTY = 50; // penalty jika tile hitam melebihi constraint
+    private static final int UNDERFILL_PENALTY = 5; // penalty jika tile hitam kurang dari constraint
+    private static final double HEURISTIC_WEIGHT = 0.05; // seberapa penting heuristic
 
-    BoardState boardState;
-    double[][] blackProb; // kemungkinan setiap cell/index akan berwarna hitam
+    private BoardState boardState;
+    private double[][] blackProb; // kemungkinan setiap cell/index akan berwarna hitam
 
     FitnessFunction(BoardState boardState) {
         this.boardState = boardState;
